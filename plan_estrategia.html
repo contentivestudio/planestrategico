@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contentive Studio — Plan de Estrategia</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
+
+  :root {
+    /* Documento: fondo blanco, texto negro real — máxima legibilidad e imprimible */
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface2: #f7f6f4;
+    --surface3: #efeee9;
+    --border: #e2e0d8;
+    --orange: #F5A623;       /* amarillo/naranja VIVO de marca, igual al del logo — sin oscurecer. Se compensa contraste con peso bold + mayúsculas en los usos de texto */
+    --orange-bg: #F5A623;    /* el naranja de marca puro, reservado para fondos/chips, nunca texto largo */
+    --lime: #479720;         /* verde franco, hermano visual del lima de marca, corregido para que se PERCIBA verde (no oliva) al oscurecerlo para texto */
+    --lime-bg: #B8E04A;      /* lima de marca puro, reservado para fondos/chips */
+    --text: #14130f;         /* negro real, no gris */
+    --muted: #6b6862;
+    --muted2: #d8d5cc;
+    --red: #c0392b;
+    --red-soft: #E08577;     /* rojo suave/pastel para estado "cambios solicitados", hermano del verde pastel de "aprobada" */
+    --red-soft-bg: #FBEAE7;  /* fondo pastel del chip/badge de cambios solicitados */
+    --green: #2e7d32;
+
+    /* Header / chrome de la app (no del documento) se mantiene oscuro para distinguir UI de contenido */
+    --chrome-bg: #161616;
+    --chrome-text: #f0ede8;
+    --chrome-border: #2a2a2a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    min-height: 100vh;
+    padding: 0 0 80px 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── HEADER (chrome de la app — se mantiene oscuro, es interfaz no documento) ── */
+  .header {
+    background: var(--chrome-bg);
+    color: var(--chrome-text);
+    border-bottom: 1px solid var(--chrome-border);
+    padding: 22px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .header-left { display: flex; align-items: center; gap: 16px; }
+
+  .logo-dot {
+    width: 10px; height: 10px;
+    background: var(--orange-bg);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .header-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--chrome-text);
+  }
+
+  .header-subtitle { font-size: 12px; color: #9a9690; letter-spacing: 0.04em; }
+
+  .header-right { display: flex; align-items: center; gap: 16px; }
+
+  .pill {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1px solid var(--chrome-border);
+    color: #9a9690;
+    letter-spacing: 0.02em;
+  }
+
+  .save-status { font-size: 11px; color: #9a9690; display: flex; align-items: center; gap: 6px; }
+  .save-dot { width: 6px; height: 6px; border-radius: 50%; background: #3a3a3a; }
+  .save-dot.saved { background: var(--lime-bg); }
+  .save-dot.saving { background: var(--orange-bg); animation: pulse 1s infinite; }
+  .save-dot.error { background: var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+  .logout-btn, .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--chrome-border);
+    color: #9a9690;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all .15s;
+  }
+  .logout-btn:hover, .btn-ghost:hover { border-color: var(--chrome-text); color: var(--chrome-text); }
+
+  /* ─── AUTH / PIN (chrome oscuro — pantalla previa al documento) ───────── */
+  #auth-screen {
+    min-height: 100vh;
+    background: var(--chrome-bg);
+    color: var(--chrome-text);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 32px; padding: 40px;
+  }
+  .auth-card {
+    background: #1c1c1c;
+    border: 1px solid var(--chrome-border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 100%; max-width: 400px;
+    text-align: center;
+  }
+  .auth-logo {
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--orange-bg);
+    margin-bottom: 32px;
+  }
+  .auth-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 8px; color: var(--chrome-text); }
+  .auth-sub { font-size: 13px; color: #9a9690; margin-bottom: 36px; line-height: 1.5; }
+
+  .pin-display { display: flex; justify-content: center; gap: 16px; margin-bottom: 12px; }
+  .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--chrome-border); background: transparent; transition: all .15s; }
+  .pin-dot.filled { background: var(--orange-bg); border-color: var(--orange-bg); }
+  .pin-dot.error { background: var(--red); border-color: var(--red); }
+  .pin-error { font-size: 12px; color: #ff7a6e; text-align: center; min-height: 18px; margin-bottom: 8px; }
+  .pin-pad { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 8px; }
+  .pin-btn {
+    background: #232323; border: 1px solid var(--chrome-border); border-radius: 12px;
+    color: var(--chrome-text); font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
+    padding: 18px 0; cursor: pointer; transition: all .15s; user-select: none;
+  }
+  .pin-btn:active { background: var(--orange-bg); color: #000; transform: scale(.95); }
+  .pin-btn.pin-del { font-size: 18px; color: #9a9690; }
+  .pin-btn.pin-empty { background: transparent; border-color: transparent; cursor: default; }
+  .pin-btn.pin-empty:active { background: transparent; transform: none; }
+
+  /* ─── LAYOUT GENERAL ─────────────────────────────────────────────────── */
+  .container { max-width: 920px; margin: 0 auto; padding: 0 32px; }
+  #app, #cliente-app { display: none; }
+
+  /* ─── PORTADA (imagen de marca estática — nunca lleva texto superpuesto) ── */
+  /* El contenedor sigue el ancho completo de la página y la imagen se ajusta a ese
+     ancho manteniendo su proporción real (sin max-height, que generaba bandas negras
+     laterales al topar el alto antes de usar el 100% del ancho disponible). */
+  .cover {
+    width: 100%;
+    background: #000;
+    border-bottom: 1px solid var(--border);
+    line-height: 0; /* evita un pixel extra de espacio debajo de la imagen por line-height del contenedor */
+  }
+  .cover-img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ─── BLOQUE DESCRIPTIVO (debajo de portada — info variable del mes) ──── */
+  .intro {
+    padding: 56px 32px 48px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .intro-inner { max-width: 760px; margin: 0 auto; }
+  .intro-eyebrow {
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--orange);
+    margin-bottom: 16px;
+  }
+  .intro-title {
+    font-family: 'Syne', sans-serif; font-size: clamp(26px, 4.6vw, 38px); font-weight: 800;
+    line-height: 1.15; margin-bottom: 16px; color: var(--text);
+  }
+  .intro-title span { color: var(--orange); }
+  .intro-sub { font-size: 15px; color: var(--muted); max-width: 680px; margin: 0 auto; line-height: 1.7; }
+  .intro-meta {
+    display: flex; justify-content: center; gap: 40px; margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .intro-meta-item { text-align: left; }
+  .intro-meta-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .intro-meta-value { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-top: 2px; color: var(--text); }
+
+
+  /* ─── PROGRESO DE REVISIÓN (cliente) ─────────────────────────────────── */
+  .review-progress {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    position: sticky; top: 0; z-index: 90;
+  }
+  .review-progress-inner { max-width: 920px; margin: 0 auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .review-progress-track { flex: 1; min-width: 140px; height: 6px; background: var(--surface3); border-radius: 100px; overflow: hidden; }
+  .review-progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange-bg), var(--lime-bg)); border-radius: 100px; transition: width .3s; }
+  .review-progress-text { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .review-progress-text strong { color: var(--text); }
+  .review-deadline {
+    font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px;
+    background: var(--surface2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 100px;
+  }
+  .review-deadline.urgent { color: var(--orange); border-color: var(--orange); }
+  .review-deadline.expired { color: var(--red); border-color: var(--red); }
+
+  /* ─── SECCIONES POR PLATAFORMA ───────────────────────────────────────── */
+  .platform-section { padding: 48px 32px 8px; }
+  .platform-header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 28px; }
+  .platform-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; color: var(--text); }
+  .platform-count { font-size: 12px; color: var(--muted); }
+  .platform-rule { flex: 1; height: 1px; background: var(--border); }
+
+  /* ─── TARJETA DE PIEZA ───────────────────────────────────────────────── */
+  .piece-card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: border-color .2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .piece-card.estado-aprobada { border-color: var(--lime); }
+  .piece-card.estado-cambios_solicitados { border-color: var(--red-soft); }
+
+
+  .piece-head {
+    padding: 22px 26px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    cursor: pointer;
+  }
+  .piece-head-left { display: flex; align-items: flex-start; gap: 14px; }
+  .piece-num {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
+    background: var(--surface3); color: var(--text);
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .piece-titles { display: flex; flex-direction: column; gap: 3px; }
+  .piece-idea { font-size: 11px; color: var(--orange); text-transform: uppercase; letter-spacing: .06em; font-weight: 800; }
+  .piece-tapa { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+
+  .piece-status-badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    padding: 5px 11px; border-radius: 100px; white-space: nowrap; flex-shrink: 0;
+  }
+  .piece-status-badge.pendiente { background: var(--surface3); color: var(--muted); }
+  .piece-status-badge.aprobada { background: rgba(184,224,74,.18); color: var(--lime); }
+  .piece-status-badge.cambios_solicitados { background: var(--red-soft-bg); color: var(--red-soft); }
+
+  .chevron { color: var(--muted); font-size: 11px; transition: transform .2s; flex-shrink: 0; margin-top: 4px; }
+
+  .piece-body { padding: 0 26px 26px; display: none; }
+  .piece-body.open { display: block; }
+
+  .piece-block { margin-bottom: 22px; }
+  .piece-block-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); margin-bottom: 10px;
+  }
+
+  .guion-escena { display: flex; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--surface2); }
+  .guion-escena:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .guion-escena-num {
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; color: var(--orange);
+    flex-shrink: 0; width: 30px;
+  }
+  .guion-escena-texto { font-size: 13.5px; line-height: 1.65; color: var(--text); opacity: .92; }
+
+  .prod-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 14px; }
+  .prod-item { background: var(--surface2); border-radius: 10px; padding: 12px 14px; }
+  .prod-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .prod-value { font-size: 13px; font-weight: 500; }
+
+  .copy-box {
+    background: var(--surface2); border-radius: 10px; padding: 16px 18px;
+    font-size: 13.5px; line-height: 1.6; white-space: pre-wrap;
+  }
+  .hashtags { font-size: 12px; color: var(--lime); opacity: .85; margin-top: 8px; }
+
+  .link-row { font-size: 13px; color: var(--muted); }
+  .link-row a { color: var(--lime); text-decoration: none; }
+  .link-row.referencia-row {
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--surface2);
+    font-style: italic;
+  }
+  .link-row.referencia-row a { color: var(--orange); }
+  .link-row.referencia-row.referencia-vacia { color: var(--muted); opacity: .6; }
+
+  /* ─── BOTONES DE APROBACIÓN (cliente) ────────────────────────────────── */
+  .approval-row { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+  .btn-approve, .btn-changes {
+    flex: 1; min-width: 180px;
+    padding: 13px 20px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: transparent; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-approve:hover { border-color: var(--lime); color: var(--lime); }
+  .btn-approve.active { background: rgba(184,224,74,.14); border-color: var(--lime); color: var(--lime); }
+  .btn-changes:hover { border-color: var(--red-soft); color: var(--red-soft); }
+  .btn-changes.active { background: var(--red-soft-bg); border-color: var(--red-soft); color: var(--red-soft); }
+
+  .changes-box { margin-top: 14px; display: none; }
+  .changes-box.open { display: block; }
+  .changes-textarea {
+    width: 100%; min-height: 90px; resize: vertical;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 14px;
+    line-height: 1.5;
+  }
+  .changes-textarea:focus { outline: none; border-color: var(--red-soft); }
+  .changes-textarea::placeholder { color: var(--muted); }
+  .changes-save {
+    margin-top: 10px; background: var(--red-soft); color: #ffffff; border: none;
+    padding: 9px 18px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+  }
+
+  .comment-readonly {
+    margin-top: 14px; background: var(--red-soft-bg); border: 1px solid rgba(224,133,119,.35);
+    border-radius: 10px; padding: 14px 16px; font-size: 13px; line-height: 1.55;
+  }
+  .comment-readonly-label { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--red-soft); margin-bottom: 6px; font-weight: 700; }
+
+
+  /* ─── BLOQUE DE APROBACIÓN FINAL ─────────────────────────────────────── */
+  .final-approval {
+    margin: 56px 32px 0; padding: 40px 36px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+  }
+  .final-approval.locked { opacity: .5; }
+  .final-approval-title { font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 800; margin-bottom: 14px; }
+  .final-approval-locked-msg {
+    font-size: 13px; color: var(--orange); background: rgba(245,166,35,.1);
+    border: 1px solid rgba(245,166,35,.25); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+  }
+  .legal-text { font-size: 12.5px; color: var(--muted); line-height: 1.75; margin-bottom: 24px; }
+  .legal-text strong { color: var(--text); }
+  .legal-text p { margin-bottom: 12px; }
+
+  .checkbox-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; cursor: pointer; }
+  .checkbox-box {
+    width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--border);
+    flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .checkbox-box.checked { background: var(--lime-bg); border-color: var(--lime-bg); }
+  .checkbox-box.checked::after { content: '✓'; color: #000; font-size: 13px; font-weight: 900; }
+  .checkbox-label { font-size: 13.5px; line-height: 1.55; }
+
+  .signature-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+  .signature-field label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 6px; }
+  .signature-field input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 11px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px;
+  }
+  .signature-field input:focus { outline: none; border-color: var(--lime); }
+
+  .btn-confirm {
+    width: 100%; padding: 16px; border-radius: 10px; border: none;
+    background: var(--lime-bg); color: #14130f; font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+    cursor: pointer; transition: all .15s;
+  }
+  .btn-confirm:hover { transform: translateY(-1px); filter: brightness(.96); }
+  .btn-confirm:disabled { background: var(--surface3); color: var(--muted); cursor: not-allowed; transform: none; }
+
+  .approved-stamp {
+    text-align: center; padding: 40px 20px;
+  }
+  .approved-stamp-icon { font-size: 40px; margin-bottom: 14px; }
+  .approved-stamp-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--lime); margin-bottom: 8px; }
+  .approved-stamp-sub { font-size: 13px; color: var(--muted); }
+
+  /* ─── TOAST ───────────────────────────────────────────────────────────── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 13px 20px; display: flex; align-items: center; gap: 10px;
+    opacity: 0; pointer-events: none; transition: all .25s; z-index: 1000; max-width: 90vw;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
+  .toast-body { font-size: 13px; }
+
+  /* ─── FOOTER ─────────────────────────────────────────────────────────── */
+  .doc-footer { text-align: center; padding: 40px 32px 10px; font-size: 11px; color: var(--muted); }
+
+  /* ─── RESPONSIVE ─────────────────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .signature-row { grid-template-columns: 1fr; }
+    .platform-section { padding: 36px 18px 8px; }
+    .final-approval { margin: 40px 14px 0; padding: 28px 22px; }
+    .header { padding: 16px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     VISTA CLIENTE — el cliente entra por link directo, sin PIN
+     ════════════════════════════════════════════════════════════════════ -->
+<div id="cliente-app" style="display:block;">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-dot"></div>
+      <div>
+        <div class="header-title">Contentive Studio</div>
+        <div class="header-subtitle">Plan de Estrategia · Revisión de contenido</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="pill" id="estadoGeneralPill">Cargando…</span>
+    </div>
+  </div>
+
+  <!-- PORTADA — imagen estática de marca, nunca se sobrescribe con texto -->
+  <div class="cover">
+    <img class="cover-img" src="assets/portada_contentive.png" alt="Contentive Studio — Plan de Contenidos">
+  </div>
+
+  <!-- BLOQUE DESCRIPTIVO — info variable del mes, separado de la portada -->
+  <div class="intro">
+    <div class="intro-inner">
+      <div class="intro-eyebrow">Plan de Estrategia Mensual</div>
+      <div class="intro-title">Contenido planificado para <span id="introCliente">—</span></div>
+      <div class="intro-sub">
+        Este documento reúne todo el contenido propuesto para el próximo mes, organizado por plataforma.
+        Revisalo pieza por pieza: podés aprobar cada una tal como está, o pedir un cambio puntual.
+        Tu aprobación es lo que habilita al equipo a producir el contenido.
+      </div>
+      <div class="intro-meta">
+        <div class="intro-meta-item">
+          <div class="intro-meta-label">Cliente</div>
+          <div class="intro-meta-value" id="metaCliente">—</div>
+        </div>
+        <div class="intro-meta-item">
+          <div class="intro-meta-label">Período</div>
+          <div class="intro-meta-value" id="metaPeriodo">—</div>
+        </div>
+        <div class="intro-meta-item">
+          <div class="intro-meta-label">Piezas totales</div>
+          <div class="intro-meta-value" id="metaTotal">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESO DE REVISIÓN — sticky, siempre visible mientras se scrollea -->
+  <div class="review-progress">
+    <div class="review-progress-inner">
+      <span class="review-progress-text"><strong id="progresoCount">0 / 0</strong> piezas revisadas</span>
+      <div class="review-progress-track">
+        <div class="review-progress-fill" id="progresoFill" style="width:0%"></div>
+      </div>
+      <div class="review-deadline" id="deadlineChip">Ventana de revisión: 72 hs</div>
+    </div>
+  </div>
+
+  <!-- SECCIONES POR PLATAFORMA — se generan dinámicamente desde el JSON -->
+  <div id="seccionesContainer"></div>
+
+  <!-- APROBACIÓN FINAL -->
+  <div class="final-approval locked" id="finalApproval">
+    <div class="final-approval-title">Aprobación final del Plan de Estrategia</div>
+    <div class="final-approval-locked-msg" id="lockedMsg">
+      Para habilitar la aprobación final, primero revisá cada pieza del plan (aprobándola o indicando un cambio).
+    </div>
+
+    <div class="legal-text">
+      <p>Al confirmar tu aprobación, das luz verde a Contentive Studio para producir exclusivamente el contenido detallado en este documento, tal como fue aprobado pieza por pieza más arriba.</p>
+      <p><strong>Ventana de revisión:</strong> contás con un plazo de 72 horas corridas desde la carga de este plan para revisarlo y enviar tu aprobación o tus cambios. Pasado ese plazo sin respuesta, Contentive Studio se reserva la posibilidad de avanzar con la producción según lo planificado, para no afectar el cronograma de publicación del mes.</p>
+      <p><strong>Contenido fuera de plan:</strong> cualquier pieza, ajuste o producción que no esté incluida en este documento aprobado será considerada un servicio adicional a lo ya contratado, y se cotizará y coordinará por separado con el equipo de Contentive Studio.</p>
+    </div>
+
+    <label class="checkbox-row" id="checkboxRow">
+      <div class="checkbox-box" id="checkboxBox"></div>
+      <div class="checkbox-label">
+        He leído y apruebo el contenido detallado en este Plan de Estrategia para su realización, incluyendo los términos sobre la ventana de revisión de 72 horas y la condición de adicional para cualquier contenido fuera de lo aquí aprobado.
+      </div>
+    </label>
+
+    <div class="signature-row">
+      <div class="signature-field">
+        <label>Nombre y apellido</label>
+        <input type="text" id="firmaNombre" placeholder="Tu nombre completo">
+      </div>
+      <div class="signature-field">
+        <label>Cargo / empresa</label>
+        <input type="text" id="firmaCargo" placeholder="Ej: Marketing, Seklou">
+      </div>
+    </div>
+
+    <button class="btn-confirm" id="btnConfirmar" disabled onclick="confirmarAprobacionFinal()">
+      Confirmar aprobación
+    </button>
+  </div>
+
+  <!-- SELLO DE APROBADO — se muestra cuando ya se confirmó -->
+  <div class="final-approval" id="approvedStamp" style="display:none;">
+    <div class="approved-stamp">
+      <div class="approved-stamp-icon">✓</div>
+      <div class="approved-stamp-title">Plan aprobado</div>
+      <div class="approved-stamp-sub" id="approvedStampDetail">—</div>
+    </div>
+  </div>
+
+  <div class="doc-footer">Contentive Studio — Diseño gráfico · Producción audiovisual · Redes sociales · Formación</div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="toast-dot" id="toastDot"></div>
+  <div class="toast-body" id="toastMsg"></div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// ⚠️ Reemplazá esta URL con la que te da Apps Script al deployar (mismo patrón que victoria.html/daniela.html)
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEUSF66Lh1KBsaYU13_mwtXNGDR5Du6eWA1K0dHrdsJoea_oRCM8mbJ2GMAtF_12X1/exec';
+
+// URL params: ?cliente=seklou&mes=junio_2026 → identifica qué documento cargar desde Drive.
+// Mientras no esté conectado al backend, se usa la data embebida de ejemplo (Seklou Junio 2026).
+const urlParams = new URLSearchParams(window.location.search);
+const clienteParam = urlParams.get('cliente') || 'seklou';
+const mesParam = urlParams.get('mes') || 'junio_2026';
+
+// ─── DATA (ejemplo embebido — Seklou Junio 2026, reemplazado por carga real desde Drive) ──
+let planData = {
+  "cliente": "Seklou",
+  "mes": "Junio",
+  "anio": 2026,
+  "fecha_carga": "2026-06-16T10:00:00",
+  "estado_general": "en_revision",
+  "piezas": [
+    {
+      "id": "reel_1",
+      "categoria": "Reels",
+      "numero": 1,
+      "idea": "Informativo",
+      "link": null,
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "Sabías que... ¿No todos los ambientes necesitan sacar humedad? A veces… el problema es totalmente al contrario y hoy te explico por qué."
+        },
+        {
+          "escena": 2,
+          "texto": "Y es que lo normal es que en la mayoría de los lugares haya humedad de sobra… pero lo que nadie sabe es que también hay otros donde falta."
+        },
+        {
+          "escena": 3,
+          "texto": "Cuando el ambiente está muy seco, lo empezás a sentir: el aire se vuelve áspero, se te seca la garganta o la nariz, hay estática, y hasta las plantas se deterioran más rápido..."
+        },
+        {
+          "escena": 4,
+          "texto": "Ahora… cuando hay exceso de humedad es distinto: paredes manchadas, vidrios empañados, olor a humedad, y ese aire pesado que no se soporta."
+        },
+        {
+          "escena": 5,
+          "texto": "Y acá es donde casi todos se equivocan… Porque creen que la solución es siempre la misma. Pero no, no se trata de sacar o agregar humedad… Se trata de tener el nivel justo y necesario para habitar. Por eso, antes de elegir cualquier solución… Primero entendé qué necesita tu espacio. ¡Contactanos!"
+        }
+      ],
+      "produccion": {
+        "personas": "1",
+        "lugar": "Casa",
+        "utileria": "Seklou"
+      },
+      "tapa": "Un dato que no conocías",
+      "copy": "¿Sabías que no todos los ambientes necesitan sacar humedad? Hay espacios donde sobra y otros donde falta.\n\nEl secreto no es eliminarla, es encontrar el equilibrio. Encontrá la opción ideal para tu espacio en TecnoTips Link en la bio.",
+      "hashtags": "#Seklou #Humedad #Hogar #Aire #ConsejosHogar #Argentina",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "reel_2",
+      "categoria": "Reels",
+      "numero": 2,
+      "idea": "Informativo",
+      "link": null,
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "Hoy te ayudo a resolver una de las dudas más comunes. ¿Cómo saber si un deshumidificador de 20 litros te alcanza?"
+        },
+        {
+          "escena": 2,
+          "texto": "No siempre necesitás comprarte el más grande… De hecho, muchas veces estás comprando de más sin darte cuenta."
+        },
+        {
+          "escena": 3,
+          "texto": "#1 el tamaño del ambiente: Si tu espacio es chico o mediano, no necesitás algo sobredimensionado. #2 el tipo de humedad: Si es leve o moderada, un equipo de 20 litros te va a funcionar perfecto. Ahora… si ya hay manchas, moho o algo más heavy… ya hablamos de otra historia."
+        },
+        {
+          "escena": 4,
+          "texto": "#3 cómo lo vas a usar: Si es para uso cotidiano o para mantener el ambiente, no necesitás algo enorme prendido todo el día. A veces elegir bien es simplemente entender qué necesitás... No comprar el primero que consigas. Si no sabés cuál te conviene, lo mejor es asesorarte con los expertos. ¡En Seklou estamos para ayudarte!"
+        }
+      ],
+      "produccion": {
+        "personas": "1",
+        "lugar": "Casa",
+        "utileria": "Seklou"
+      },
+      "tapa": "¿Un 20L te alcanza?",
+      "copy": "No siempre necesitás el deshumidificador más grande\n\nSi tu ambiente es chico o mediano, la humedad no es extrema y lo usás en el día a día…\n¡Nuestra opción de 20L es más que suficiente!\n\nEl error no es elegir mal… Es no entender qué necesitás.\nEn Seklou te respaldamos: 11 2251-8650",
+      "hashtags": "#Seklou #Deshumidificador #Humedad #Hogar #Consejos #Argentina",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "reel_3",
+      "categoria": "Reels",
+      "numero": 3,
+      "idea": "Informativo",
+      "link": null,
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "No puedo creer la cantidad de mensajes que nos llegan diciendo esto… (Modelo sentada en un sofá con el tlf simulando que le llegan los mensajes y se van ubicando arriba, hacerlo en edición)"
+        },
+        {
+          "escena": 2,
+          "texto": "\"Probé bolsitas, ventilación, trucos de TikTok… y nada me estaba ayudando.\" / \"Al principio parecía que funcionaba pero siempre volvía el mismo problema…\" / \"Siempre dejaba el ventilador andando por horas.\" / \"Me la paso enferma y me preocupa la salud de mi familia\" / \"Se me mancharon todos los colchones y las paredes de moho\" (Hacer que todos esos mensajes aparezcan individualmente en la edición del video)"
+        },
+        {
+          "escena": 3,
+          "texto": "Honestamente… los entendemos. Porque cuando convivís con humedad, llega un punto donde ya no sabés qué más probar. Y ahí es donde entendés la diferencia entre tapar el problema… o realmente solucionarlo."
+        },
+        {
+          "escena": 4,
+          "texto": "Por eso en Seklou no creemos en soluciones temporales. Creemos fielmente en volver a sentirse cómodos en nuestra propia casa. Contactanos y te ayudamos a elegir el indicado."
+        }
+      ],
+      "produccion": {
+        "personas": "1",
+        "lugar": "Casa",
+        "utileria": "Seklou"
+      },
+      "tapa": "Los mensajes que más recibimos en Seklou",
+      "copy": "\"Probé de todo… y la humedad siempre volvía.\"\nLeemos mensajes así todos los días\nA veces no necesitás más trucos… necesitás una solución real\nEscribinos y encontrá el Seklou ideal para tu espacio",
+      "hashtags": "#Seklou #ChauHumedad #Deshumidificador #Hogar #AireLimpio",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": [],
+      "link_referencia": "https://www.tiktok.com/@ejemplo/video/123456 (referencia de formato: mensajes apareciendo en pantalla)"
+    },
+    {
+      "id": "reel_4",
+      "categoria": "Reels",
+      "numero": 4,
+      "idea": "Promocional",
+      "link": null,
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "¿Si te diera 10 seg para pensar en lo que más te molesta de tu casa ahora mismo, qué me dirías? (Hacer efecto de reloj y de espera)"
+        },
+        {
+          "escena": 2,
+          "texto": "¿Humedad por todos lados? ¿El ambiente seco que te deja la garganta hecha bolsa? ¿El aire pesado que no sabés qué tiene pero te molesta igual? ¿O directamente no tenés idea qué está pasando? ¿Te la hice fácil verdad? (La modelo menciona todas las interrogantes, haciendo cambios rápidos de plano, tono medio divertido)"
+        },
+        {
+          "escena": 3,
+          "texto": "Porque lo loco es que todos sentimos que algo no anda bien… pero no sabemos qué es lo que realmente pasa en nuestra casa. Y ahí es donde la mayoría se manda el error… Compran algo sin entender el problema, y terminan no resolviendo absolutamente nada."
+        },
+        {
+          "escena": 4,
+          "texto": "Por eso, antes de hacer cualquier cosa… primero entendé qué está pasando en tu espacio. Contame en los comentarios cuál es tu situación y con gusto te asesoramos."
+        }
+      ],
+      "produccion": {
+        "personas": "1",
+        "lugar": "Casa",
+        "utileria": "Seklou"
+      },
+      "tapa": "¿Qué es lo que más te molesta de tu casa?",
+      "copy": "Si te doy 10 segundos… ¿qué es lo primero que te molesta de tu casa? 🤔\nA veces creemos que sabemos cuál es el problema… Pero no siempre es lo que parece. Leemos tus comentarios y Seklou te ayuda a resolverlo ✅",
+      "hashtags": "#Seklou #MiRutinaSeklou #ChauHumedad #Deshumidificador #BienestarEnCasa #AireLimpio",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "tiktok_1",
+      "categoria": "TikTok",
+      "numero": 1,
+      "idea": "Promocional",
+      "link": null,
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "¿Cuántas cosas recomendaste y nunca nadie te pagó por hacerlo? Una serie. Un restaurante. Un perfume. Un lugar para comer…"
+        },
+        {
+          "escena": 2,
+          "texto": "Entonces… ¿por qué no generar ganancia cuando recomendás algo que verdaderamente le va a resolver la vida a una persona?"
+        },
+        {
+          "escena": 3,
+          "texto": "Con Seklou eso cambió, porque ahora existe el sistema de afiliados, donde simplemente te registrás, recibís un link personalizado y cada vez que alguien compra desde ese enlace, la venta genera una comisión para vos."
+        },
+        {
+          "escena": 4,
+          "texto": "¿Y sabés qué es lo mejor de todo? Que no necesitás stock, no hacés envíos y no necesitás ser influencer. Literalmente todos conocemos a alguien con humedad, así que compartí tu link y Seklou se encarga del resto. ¡Ahora sí, que vengan esas comisiones!"
+        }
+      ],
+      "produccion": {
+        "personas": "—",
+        "lugar": "Casa",
+        "utileria": "Seklou"
+      },
+      "tapa": "Recomendaste cosas gratis toda tu vida",
+      "copy": "Con el sistema de afiliados de Seklou podés compartir tu link y generar comisiones por cada venta\nSin stock, sin envíos y sin complicarte\nEntrá hoy al programa de afiliados y empezá a compartir algo que realmente ayuda a las personas",
+      "hashtags": "#Seklou #Afiliados #IngresoExtra #MarketingDeAfiliados #Argentina",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "tiktok_2",
+      "categoria": "TikTok",
+      "numero": 2,
+      "idea": "Informativo / Dinámico",
+      "link": null,
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "¿Seré la única que abandona el carrito cuando una compra se vuelve complicada? (Mirada a cámara mientras usa el celu)"
+        },
+        {
+          "escena": 2,
+          "texto": "Porque posta… entre registros eternos, pagos complejos y páginas dudosas… me da una fiaca terrible."
+        },
+        {
+          "escena": 3,
+          "texto": "Lo bueno es que con la web de Seklou todo es mucho más fácil... Simplemente entrás, elegís el modelo, pagás y listo, lo tenés en tu casa en pocos días y encima lo podés sacar en 3 cuotas sin interés."
+        },
+        {
+          "escena": 4,
+          "texto": "Porque sí… vivir con humedad es horrible, pero pagar todo junto también (Terminar con tono jocoso, darle un toque de humor y dinamizar las tomas en diferentes ángulos y espacios)"
+        }
+      ],
+      "produccion": {
+        "personas": "—",
+        "lugar": "Casa",
+        "utileria": "Seklou"
+      },
+      "tapa": "3 cuotas y en 2 minutos ya estaba listo",
+      "copy": "Entrás, elegís tu modelo y listo. ¡Así de fácil podés comprar tu Seklou desde la web!\nY además, tenés 3 cuotas sin interés\nPorque resolver la humedad no debería ser complicado. Visitanos 👉 www.seklou.com",
+      "hashtags": "#Seklou #ChauHumedad #Deshumidificador #CuotasSinInteres #Hogar",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "tiktok_3",
+      "categoria": "TikTok",
+      "numero": 3,
+      "idea": "Promocional / Dinámico",
+      "link": null,
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "Hay dos tipos de personas… Los que le ponen azúcar al mate y los que SOLO compran en Mercado Libre. Mi papá es uno de esos, y no, no me estoy refiriendo al mate... (Risa disimulada)"
+        },
+        {
+          "escena": 2,
+          "texto": "Porque te juro que revisa cada detalle, las estrellas, los comentarios, las fotos, las preguntas… Solo le falta pedir hasta el análisis de sangre del vendedor. (Risa disimulada)"
+        },
+        {
+          "escena": 3,
+          "texto": "Así que cuando empezó con el problema de humedad en casa… su primera pregunta fue: ¿Seklou está en Mercado Libre? Y resultó que sí, tienen tienda oficial para los que prefieren comprar en su plataforma de confianza, envío gratis y la mejor calidad en productos antihumedad. ¡Mi papá y yo siempre lo recomendamos!"
+        }
+      ],
+      "produccion": {
+        "personas": "—",
+        "lugar": "Casa",
+        "utileria": "Seklou"
+      },
+      "tapa": "Si sos team Mercado Libre… ¡Esto es para vos!",
+      "copy": "Sí, Seklou también tiene tienda oficial en Mercado Libre\nPara los que prefieren comprar con reseñas, reputación y toda la tranquilidad en un mismo lugar\nEntrá a nuestra tienda oficial y encontrá tu modelo ideal",
+      "hashtags": "#Seklou #MercadoLibre #Deshumidificador #ChauHumedad #Hogar",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": [],
+      "link_referencia": "https://www.instagram.com/reel/ejemplo123/ (tono de humor + storytelling familiar)"
+    },
+    {
+      "id": "tiktok_4",
+      "categoria": "TikTok",
+      "numero": 4,
+      "idea": "—",
+      "link": null,
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "Si de comodidad hablamos, hoy prendí el deshumidificador… ¡¡sin estar en mi casa!! ¿Lo pueden creer? Todo un lujo de la vida (Pausa corta mirando a cámara)"
+        },
+        {
+          "escena": 2,
+          "texto": "Porque seamos honestos… no hay nada peor que volver y sentir la casa pesada, húmeda y con el aire raro. Y justo hoy me había ido rapidísimo… Entonces cuando estaba en la calle dije: Noooo, me olvidé de prender el Seklou. (Hacer zoom estrepitoso y efecto de vibración)"
+        },
+        {
+          "escena": 3,
+          "texto": "Por suerte mi modelo tiene WiFi y lo pude prender desde el tlf sin ningún problema. Y te digo un secreto, una vez que te acostumbrás a esto, no querés volver atrás. (Cerrar toma con el Seklou)"
+        }
+      ],
+      "produccion": {
+        "personas": "1",
+        "lugar": "Casa",
+        "utileria": "Seklou"
+      },
+      "tapa": "El verdadero lujo",
+      "copy": "Prender el deshumidificador desde el celular… Sí, ya estamos en ese nivel\nCon el modelo WiFi de Seklou podés controlar el aire de tu casa estés donde estés\nPorque volver a un ambiente cómodo también se siente distinto.",
+      "hashtags": "#Seklou #SmartHome #Deshumidificador #Hogar #Tecnologia",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_1",
+      "categoria": "Historias",
+      "numero": 1,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://seklou.com/",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "Pensé que iba a ser complicado comprarlo… Pero literalmente dediqué solo 5 minutos de mi tiempo. Entré, elegí según mi espacio… y listo. Además te tiro un dato: Siempre elegí el modelo según el tamaño de tu ambiente. Si tenés dudas siempre podés contactarlos."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Grabada"
+      },
+      "tapa": "Quiero mi Seklou",
+      "copy": "Botón con link: https://seklou.com/",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_2",
+      "categoria": "Historias",
+      "numero": 2,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://seklou.com/",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "¿Abrís la ventana y no cambia nada? Ventilar no siempre alcanza. Controlar la humedad con Seklou sí."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Estática"
+      },
+      "tapa": "Conocé Seklou",
+      "copy": "Botón con link: https://seklou.com/",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_3",
+      "categoria": "Historias",
+      "numero": 3,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://www.mercadolibre.com.ar/tienda/sekloutechnology",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "Si tu espejo se empaña así… tu casa está igual, (Aunque no lo veas)"
+        },
+        {
+          "escena": 2,
+          "texto": "Y el verdadero problema no es lo que ves… Sino lo que no estás controlando. Probá con Seklou y mejorá tu vida."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Carrusel"
+      },
+      "tapa": "Quiero más info",
+      "copy": "Botón con link: tienda oficial Mercado Libre",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_4",
+      "categoria": "Historias",
+      "numero": 4,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://seklou.com/",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "¿Todo en tu ambiente se siente húmedo? Sticker de nivel: 💧"
+        },
+        {
+          "escena": 2,
+          "texto": "Ropa, sábanas, ambiente… No es solo el invierno. Es el aire."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Carrusel"
+      },
+      "tapa": "Regulalo con Seklou",
+      "copy": "Botón con link: https://seklou.com/",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_5",
+      "categoria": "Historias",
+      "numero": 5,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://www.mercadolibre.com.ar/tienda/sekloutechnology",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "¿Invierno más ventanas cerradas? Um um... Hacés que el aire quede sin circulación y se acumule la humedad. Mejor probá con Seklou que mantiene el equilibrio y hace que disfrutes de la paz de tu hogar."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Grabada"
+      },
+      "tapa": "Conocé tu modelo ideal",
+      "copy": "Botón con link: tienda oficial Mercado Libre",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_6",
+      "categoria": "Historias",
+      "numero": 6,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://seklou.com/",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "¿Más alergias en invierno? Sticker de encuesta: Si soy 🤧 | Todavía no caigo 🙏"
+        },
+        {
+          "escena": 2,
+          "texto": "Y es que no siempre es el frío. También puede ser la humedad. Seklou te ayuda a reducirla."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Carrusel"
+      },
+      "tapa": "Quiero el mío",
+      "copy": "Botón con link: https://seklou.com/",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_7",
+      "categoria": "Historias",
+      "numero": 7,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://seklou.com/",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "¿Secar ropa adentro…? Parece práctico, pero suma humedad. Con Seklou compensás el exceso."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Estático"
+      },
+      "tapa": "Quiero conocer los modelos",
+      "copy": "Botón con link: https://seklou.com/",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_8",
+      "categoria": "Historias",
+      "numero": 8,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://www.mercadolibre.com.ar/tienda/sekloutechnology",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "En invierno se nota más ¡Pero la humedad pasa todo el año!"
+        },
+        {
+          "escena": 2,
+          "texto": "El aire cambia siempre. Acompañate de Seklou en cada etapa de tu vida."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Carrusel"
+      },
+      "tapa": "Conocé todos los modelos",
+      "copy": "Botón con link: tienda oficial Mercado Libre",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_9",
+      "categoria": "Historias",
+      "numero": 9,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://www.mercadolibre.com.ar/deshumidificador-ol40-seklouionizador-wifi",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "La tecnología llegó al aire… Conocé nuestro deshumidificador ionizador con wifi. ¡No lo dejes pasar!"
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Estático"
+      },
+      "tapa": "Quiero el mío",
+      "copy": "Botón con link: producto Mercado Libre — deshumidificador ionizador wifi",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_10",
+      "categoria": "Historias",
+      "numero": 10,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://api.whatsapp.com/send/?phone=541122518650",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "Creamos un sistema de afiliados para que cualquier persona pueda compartir nuestros productos y generar ingresos por cada venta realizada desde su link. ¡Si querés ser parte, escribinos por WhatsApp y te contamos todos los detalles!"
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Grabada"
+      },
+      "tapa": "Quiero ser parte",
+      "copy": "Botón con link: WhatsApp Seklou",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_11",
+      "categoria": "Historias",
+      "numero": 11,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://seklou.com/",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "Si estabas pensando en resolver el tema de la humedad… Aprovechá de comprarlo en 3 cuotas, sin intereses y desde nuestra web oficial..."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Estática"
+      },
+      "tapa": "Necesito mi deshumidificador",
+      "copy": "Botón con link: https://seklou.com/",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_12",
+      "categoria": "Historias",
+      "numero": 12,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://seklou.com/",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "Calefacción + humedad ¡Mala combinación! El aire se vuelve pesado, pero Seklou lo estabiliza."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Estático"
+      },
+      "tapa": "Necesito mi deshumidificador",
+      "copy": "Botón con link: https://seklou.com/",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_13",
+      "categoria": "Historias",
+      "numero": 13,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://seklou.com/",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "El moho no siempre se ve. Pero está y se siente. Sticker de emoji: 🤢 Seklou te ayuda a reducirlo y a evitarlo."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Estático"
+      },
+      "tapa": "Quiero conocer los modelos",
+      "copy": "Botón con link: https://seklou.com/",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_14",
+      "categoria": "Historias",
+      "numero": 14,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://seklou.com/",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "¿Tus productos electrónicos están fallando más de lo normal? Puede ser humedad. Protegete con ayuda de Seklou."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Estático"
+      },
+      "tapa": "Obtené más info acá",
+      "copy": "Botón con link: https://seklou.com/",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_15",
+      "categoria": "Historias",
+      "numero": 15,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://api.whatsapp.com/send/?phone=541122518650",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "¿Todavía usás esas pastillas antihumedad? Sí sí, esas que juntan un poco de agua… pero la humedad sigue estando en el aire, en las paredes y en toda tu casa. Contactanos y encontrá el deshumidificador ideal para todo tu espacio."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Grabada"
+      },
+      "tapa": "Conocé Seklou",
+      "copy": "Botón con link: WhatsApp Seklou",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    },
+    {
+      "id": "historia_16",
+      "categoria": "Historias",
+      "numero": 16,
+      "idea": "Gráfico y colores de marca",
+      "link": "https://api.whatsapp.com/send/?phone=541122518650",
+      "guion": [
+        {
+          "escena": 1,
+          "texto": "¿Dolor de cabeza constante sin una razón clara? El ambiente puede estar influyendo. Revisá el nivel de humedad y Seklou te ayuda a mejorarla."
+        }
+      ],
+      "produccion": {
+        "formato": "Diseño / Estática"
+      },
+      "tapa": "Quiero más info",
+      "copy": "Botón con link: WhatsApp Seklou",
+      "hashtags": "",
+      "estado": "pendiente",
+      "comentario_cliente": null,
+      "historial_cambios": []
+    }
+  ]
+};
+
+// driveLoadedOk arranca en false (igual que victoria.html/daniela.html): bloquea cualquier guardado
+// hasta que cargarDesdeScriptCliente() confirme que la carga inicial fue exitosa.
+// Excepción: en modo demo (SCRIPT_URL sin deployar todavía) se fuerza a true para poder
+// probar la interfaz visualmente sin backend real conectado.
+let driveLoadedOk = (SCRIPT_URL === 'PENDIENTE_DEPLOYAR_APPS_SCRIPT');
+
+// ─── DEADLINE 72HS ────────────────────────────────────────────────────────────
+function calcularDeadline() {
+  const chip = document.getElementById('deadlineChip');
+  chip.textContent = 'Tenés 72 horas desde la recepción de este plan para revisarlo y aprobarlo';
+  chip.className = 'review-deadline';
+}
+
+// ─── RENDER PRINCIPAL ─────────────────────────────────────────────────────────
+function renderTodo() {
+  document.getElementById('introCliente').textContent = planData.cliente;
+  document.getElementById('metaCliente').textContent = planData.cliente;
+  document.getElementById('metaPeriodo').textContent = `${planData.mes} ${planData.anio}`;
+  document.getElementById('metaTotal').textContent = planData.piezas.length;
+
+  const categorias = [...new Set(planData.piezas.map(p => p.categoria))];
+  const container = document.getElementById('seccionesContainer');
+  container.innerHTML = '';
+
+  categorias.forEach(cat => {
+    const piezas = planData.piezas.filter(p => p.categoria === cat);
+    const section = document.createElement('div');
+    section.className = 'platform-section';
+    section.innerHTML = `
+      <div class="platform-header">
+        <span class="platform-title">${cat}</span>
+        <span class="platform-rule"></span>
+        <span class="platform-count">${piezas.length} ${piezas.length === 1 ? 'pieza' : 'piezas'}</span>
+      </div>
+      <div class="platform-pieces" id="pieces-${cat}"></div>
+    `;
+    container.appendChild(section);
+
+    const piecesContainer = section.querySelector(`#pieces-${cat}`);
+    piezas.forEach(pieza => piecesContainer.appendChild(renderPieza(pieza)));
+  });
+
+  actualizarProgreso();
+  calcularDeadline();
+}
+
+function renderPieza(pieza) {
+  const card = document.createElement('div');
+  card.className = `piece-card estado-${pieza.estado}`;
+  card.id = `card-${pieza.id}`;
+
+  const badgeText = pieza.estado === 'aprobada' ? 'Aprobada'
+                   : pieza.estado === 'cambios_solicitados' ? 'Cambios solicitados'
+                   : 'Pendiente de revisión';
+
+  let guionHtml = '';
+  if (pieza.guion && pieza.guion.length) {
+    guionHtml = pieza.guion.map(g => `
+      <div class="guion-escena">
+        <div class="guion-escena-num">#${g.escena}</div>
+        <div class="guion-escena-texto">${escapeHtml(g.texto)}</div>
+      </div>
+    `).join('');
+  }
+
+  let prodHtml = '';
+  if (pieza.produccion) {
+    prodHtml = '<div class="prod-grid">' + Object.entries(pieza.produccion).map(([k,v]) => `
+      <div class="prod-item">
+        <div class="prod-label">${capitalize(k)}</div>
+        <div class="prod-value">${escapeHtml(String(v))}</div>
+      </div>
+    `).join('') + '</div>';
+  }
+
+  const linkHtml = pieza.link ? `<div class="link-row">Link: <a href="${pieza.link}" target="_blank" rel="noopener">${pieza.link}</a></div>` : '';
+  const referenciaHtml = pieza.link_referencia
+    ? `<div class="link-row referencia-row">🔗 Referencia / inspiración: <a href="${pieza.link_referencia}" target="_blank" rel="noopener">${pieza.link_referencia}</a></div>`
+    : `<div class="link-row referencia-row referencia-vacia">🔗 Referencia / inspiración: Sin referencia</div>`;
+
+  card.innerHTML = `
+    <div class="piece-head" onclick="togglePieza('${pieza.id}')">
+      <div class="piece-head-left">
+        <div class="piece-num">${String(pieza.numero).padStart(2,'0')}</div>
+        <div class="piece-titles">
+          <div class="piece-idea">${escapeHtml(pieza.idea)}</div>
+          <div class="piece-tapa">${escapeHtml(pieza.tapa)}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="piece-status-badge ${pieza.estado}">${badgeText}</span>
+        <span class="chevron" id="chev-${pieza.id}">▼</span>
+      </div>
+    </div>
+    <div class="piece-body" id="body-${pieza.id}">
+      ${guionHtml ? `<div class="piece-block"><div class="piece-block-label">Guión / Idea</div>${guionHtml}${referenciaHtml}</div>` : `<div class="piece-block">${referenciaHtml}</div>`}
+      ${prodHtml ? `<div class="piece-block"><div class="piece-block-label">Producción</div>${prodHtml}</div>` : ''}
+      <div class="piece-block">
+        <div class="piece-block-label">Descripción de la publicación</div>
+        <div class="copy-box">${escapeHtml(pieza.copy || '')}</div>
+        ${pieza.hashtags ? `<div class="hashtags">${escapeHtml(limitarHashtags(pieza.hashtags, 5))}</div>` : ''}
+      </div>
+      ${linkHtml ? `<div class="piece-block">${linkHtml}</div>` : ''}
+
+      <div class="piece-block">
+        <div class="piece-block-label">Tu revisión</div>
+        <div class="approval-row">
+          <button class="btn-approve ${pieza.estado === 'aprobada' ? 'active' : ''}" onclick="aprobarPieza('${pieza.id}')">
+            ✓ Apruebo la realización de la publicación
+          </button>
+          <button class="btn-changes ${pieza.estado === 'cambios_solicitados' ? 'active' : ''}" onclick="abrirCambios('${pieza.id}')">
+            ✎ Tengo cambios
+          </button>
+        </div>
+        <div class="changes-box ${pieza.estado === 'cambios_solicitados' && !pieza.comentario_cliente ? 'open' : ''}" id="changesBox-${pieza.id}">
+          <textarea class="changes-textarea" id="changesText-${pieza.id}" placeholder="Contanos qué cambio necesitás en esta pieza...">${pieza.comentario_cliente || ''}</textarea>
+          <button class="changes-save" onclick="guardarCambio('${pieza.id}')">Enviar cambio</button>
+        </div>
+        ${pieza.estado === 'cambios_solicitados' && pieza.comentario_cliente ? `
+          <div class="comment-readonly">
+            <div class="comment-readonly-label">Cambio solicitado</div>
+            ${escapeHtml(pieza.comentario_cliente)}
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+
+  return card;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ─── HASHTAGS: límite de 5 ──────────────────────────────────────────────────
+// Recorte de seguridad para la vista cliente: si por algún motivo llegan más de 5
+// hashtags en el dato (carga manual, data vieja, etc.), se muestran solo los primeros 5.
+// La validación real de origen vive en validarHashtags(), pensada para el editor de Victoria.
+function limitarHashtags(texto, maxCantidad) {
+  if (!texto) return '';
+  const tags = texto.trim().split(/\s+/).filter(t => t.startsWith('#'));
+  if (tags.length <= maxCantidad) return texto;
+  return tags.slice(0, maxCantidad).join(' ');
+}
+
+// Validación de origen: para usar en el editor de Victoria cuando exista.
+// Devuelve { valido: bool, cantidad: number, mensaje: string|null }
+function validarHashtags(texto, maxCantidad = 5) {
+  if (!texto || !texto.trim()) {
+    return { valido: true, cantidad: 0, mensaje: null };
+  }
+  const tags = texto.trim().split(/\s+/).filter(t => t.startsWith('#'));
+  if (tags.length > maxCantidad) {
+    return {
+      valido: false,
+      cantidad: tags.length,
+      mensaje: `Cargaste ${tags.length} hashtags. El máximo permitido es ${maxCantidad} — sacá ${tags.length - maxCantidad} antes de guardar.`
+    };
+  }
+  return { valido: true, cantidad: tags.length, mensaje: null };
+}
+
+// ─── TOGGLE PIEZA ─────────────────────────────────────────────────────────────
+function togglePieza(id) {
+  const body = document.getElementById(`body-${id}`);
+  const chev = document.getElementById(`chev-${id}`);
+  body.classList.toggle('open');
+  chev.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+// ─── APROBAR / CAMBIOS ────────────────────────────────────────────────────────
+function aprobarPieza(id) {
+  const pieza = planData.piezas.find(p => p.id === id);
+  if (!pieza) return;
+  pieza.estado = 'aprobada';
+  pieza.comentario_cliente = null;
+  registrarHistorial(pieza, 'aprobada');
+  refrescarPieza(id, true); // se colapsa automáticamente tras aprobar
+  actualizarProgreso();
+  guardarEnDrive(); // sin notificación: aprobar una pieza individual no dispara mail (evita spam pieza por pieza)
+  showToast('Pieza aprobada ✓');
+}
+
+function abrirCambios(id) {
+  const pieza = planData.piezas.find(p => p.id === id);
+  if (!pieza) return;
+
+  // Si la pieza estaba aprobada, al iniciar un cambio se le quita ese estado de inmediato
+  // (vuelve a quedar "en revisión" hasta que el cliente confirme el texto del cambio).
+  if (pieza.estado === 'aprobada') {
+    pieza.estado = 'pendiente';
+    pieza.comentario_cliente = null;
+    refrescarPieza(id);
+    actualizarProgreso();
+  }
+
+  const box = document.getElementById(`changesBox-${id}`);
+  box.classList.add('open');
+  document.getElementById(`changesText-${id}`)?.focus();
+}
+
+function guardarCambio(id) {
+  const texto = document.getElementById(`changesText-${id}`).value.trim();
+  if (!texto) {
+    showToast('Escribí el cambio antes de enviarlo', 'warn');
+    return;
+  }
+  const pieza = planData.piezas.find(p => p.id === id);
+  if (!pieza) return;
+  pieza.estado = 'cambios_solicitados';
+  pieza.comentario_cliente = texto;
+  registrarHistorial(pieza, 'cambios_solicitados', texto);
+  refrescarPieza(id, true); // se colapsa automáticamente tras enviar el cambio
+  actualizarProgreso();
+  guardarEnDrive('cambio_solicitado'); // notifica a Pedro: hay un cambio nuevo que Victoria debe revisar
+  showToast('Cambio enviado al equipo ✓');
+}
+
+function registrarHistorial(pieza, estado, comentario) {
+  pieza.historial_cambios = pieza.historial_cambios || [];
+  pieza.historial_cambios.push({
+    fecha: new Date().toISOString(),
+    estado: estado,
+    comentario: comentario || null
+  });
+}
+
+function refrescarPieza(id, forzarColapso) {
+  const pieza = planData.piezas.find(p => p.id === id);
+  const oldCard = document.getElementById(`card-${id}`);
+  const wasOpen = document.getElementById(`body-${id}`)?.classList.contains('open');
+  const newCard = renderPieza(pieza);
+  oldCard.replaceWith(newCard);
+  if (wasOpen && !forzarColapso) {
+    document.getElementById(`body-${id}`).classList.add('open');
+    document.getElementById(`chev-${id}`).textContent = '▲';
+  }
+}
+
+// ─── PROGRESO GENERAL ─────────────────────────────────────────────────────────
+function actualizarProgreso() {
+  const total = planData.piezas.length;
+  const revisadas = planData.piezas.filter(p => p.estado !== 'pendiente').length;
+  const pct = total > 0 ? Math.round((revisadas/total)*100) : 0;
+
+  document.getElementById('progresoCount').textContent = `${revisadas} / ${total}`;
+  document.getElementById('progresoFill').style.width = pct + '%';
+
+  const pill = document.getElementById('estadoGeneralPill');
+  if (revisadas === total && total > 0) {
+    pill.textContent = 'Todo revisado';
+  } else {
+    pill.textContent = `${total - revisadas} pendientes`;
+  }
+
+  // Habilitar/deshabilitar bloque de aprobación final
+  const finalBlock = document.getElementById('finalApproval');
+  const lockedMsg = document.getElementById('lockedMsg');
+  const checkboxRow = document.getElementById('checkboxRow');
+  const allReviewed = revisadas === total && total > 0;
+
+  if (allReviewed) {
+    finalBlock.classList.remove('locked');
+    lockedMsg.style.display = 'none';
+  } else {
+    finalBlock.classList.add('locked');
+    lockedMsg.style.display = 'block';
+    lockedMsg.textContent = `Para habilitar la aprobación final, revisá las ${total - revisadas} pieza(s) restantes (aprobándola o indicando un cambio).`;
+  }
+
+  validarBotonConfirmar();
+}
+
+// ─── CHECKBOX + FIRMA ─────────────────────────────────────────────────────────
+let checkboxMarcado = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const box = document.getElementById('checkboxRow');
+  if (box) {
+    box.addEventListener('click', () => {
+      const allReviewed = planData.piezas.every(p => p.estado !== 'pendiente');
+      if (!allReviewed) return;
+      checkboxMarcado = !checkboxMarcado;
+      document.getElementById('checkboxBox').classList.toggle('checked', checkboxMarcado);
+      validarBotonConfirmar();
+    });
+  }
+  document.getElementById('firmaNombre')?.addEventListener('input', validarBotonConfirmar);
+  document.getElementById('firmaCargo')?.addEventListener('input', validarBotonConfirmar);
+});
+
+function validarBotonConfirmar() {
+  const allReviewed = planData.piezas.every(p => p.estado !== 'pendiente');
+  const nombre = document.getElementById('firmaNombre')?.value.trim();
+  const btn = document.getElementById('btnConfirmar');
+  if (!btn) return;
+  btn.disabled = !(allReviewed && checkboxMarcado && nombre);
+}
+
+function confirmarAprobacionFinal() {
+  const nombre = document.getElementById('firmaNombre').value.trim();
+  const cargo = document.getElementById('firmaCargo').value.trim();
+  if (!nombre || !checkboxMarcado) return;
+
+  planData.estado_general = 'aprobado_final';
+  planData.aprobacion_final = {
+    nombre: nombre,
+    cargo: cargo,
+    fecha: new Date().toISOString()
+  };
+
+  document.getElementById('finalApproval').style.display = 'none';
+  const stamp = document.getElementById('approvedStamp');
+  stamp.style.display = 'block';
+  const fechaStr = new Date().toLocaleString('es-AR', { dateStyle: 'long', timeStyle: 'short' });
+  document.getElementById('approvedStampDetail').textContent =
+    `Aprobado por ${nombre}${cargo ? ' · ' + cargo : ''} — ${fechaStr}`;
+
+  guardarEnDrive('aprobacion_final'); // notifica a Pedro: el cliente aprobó todo, ya se puede generar el PDF para producción
+  showToast('Plan aprobado ✓ El equipo ya fue notificado');
+}
+
+// ─── GUARDADO EN DRIVE (Apps Script) ───────────────────────────────────────────
+let saveTimer = null;
+function guardarEnDrive(tipoNotificacion) {
+  if (!driveLoadedOk) {
+    showToast('⚠️ No se pudo guardar — recargá la página', 'error');
+    return;
+  }
+  if (SCRIPT_URL === 'PENDIENTE_DEPLOYAR_APPS_SCRIPT') {
+    console.log('Apps Script aún no conectado. Data actual:', planData);
+    return;
+  }
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      const payload = {
+        cliente: clienteParam,
+        mes: mesParam,
+        data: planData,
+        notificar: tipoNotificacion || null
+      };
+      const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error);
+    } catch(e) {
+      showToast('⚠️ Error al guardar. Intentá de nuevo.', 'error');
+    }
+  }, 1000);
+}
+
+async function cargarDesdeScriptCliente() {
+  if (SCRIPT_URL === 'PENDIENTE_DEPLOYAR_APPS_SCRIPT') {
+    // Sin backend conectado todavía: se usa la data embebida de ejemplo.
+    renderTodo();
+    return;
+  }
+  try {
+    const res = await fetch(`${SCRIPT_URL}?cliente=${clienteParam}&mes=${mesParam}`);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Error al cargar');
+    if (json.data) {
+      planData = json.data;
+    }
+    driveLoadedOk = true;
+    renderTodo();
+  } catch(e) {
+    driveLoadedOk = false;
+    showToast('⚠️ No se pudo cargar el plan. Recargá la página.', 'error');
+  }
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  const dot = document.getElementById('toastDot');
+  document.getElementById('toastMsg').textContent = msg;
+  dot.style.background = type === 'error' ? 'var(--red)' : type === 'warn' ? 'var(--orange-bg)' : 'var(--lime-bg)';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+cargarDesdeScriptCliente();
+// El aviso de 72hs ahora es un texto fijo (calcularDeadline), no requiere refresco periódico.
+</script>
+</body>
+</html>
