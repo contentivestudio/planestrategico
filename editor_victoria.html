@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contentive Studio — Editor de Plan de Estrategia</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --surface3: #232323;
+    --border: #2a2a2a;
+    --orange: #F5A623;
+    --lime: #B8E04A;
+    --red-soft: #E08577;
+    --red-soft-bg: rgba(224,133,119,.12);
+    --text: #f0ede8;
+    --muted: #8a8780;
+    --muted2: #3a3a3a;
+    --red: #ff4444;
+    --green: #4ade80;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    padding: 0 0 80px 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── HEADER ─────────────────────────────────────────────────────────── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-dot { width: 10px; height: 10px; background: var(--orange); border-radius: 50%; flex-shrink: 0; }
+  .header-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+  .header-subtitle { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+
+  .save-status { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted2); }
+  .save-dot.saved { background: var(--lime); }
+  .save-dot.saving { background: var(--orange); animation: pulse 1s infinite; }
+  .save-dot.error { background: var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+  .btn-ghost, .logout-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all .15s;
+  }
+  .btn-ghost:hover, .logout-btn:hover { border-color: var(--text); color: var(--text); }
+
+  /* ─── AUTH / PIN ─────────────────────────────────────────────────────── */
+  #auth-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 32px; padding: 40px;
+  }
+  .auth-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 48px 40px; width: 100%; max-width: 400px; text-align: center;
+  }
+  .auth-logo {
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--orange); margin-bottom: 32px;
+  }
+  .auth-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .auth-sub { font-size: 13px; color: var(--muted); margin-bottom: 36px; line-height: 1.5; }
+
+  .pin-display { display: flex; justify-content: center; gap: 16px; margin-bottom: 12px; }
+  .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); background: transparent; transition: all .15s; }
+  .pin-dot.filled { background: var(--orange); border-color: var(--orange); }
+  .pin-dot.error { background: var(--red); border-color: var(--red); }
+  .pin-error { font-size: 12px; color: var(--red); text-align: center; min-height: 18px; margin-bottom: 8px; }
+  .pin-pad { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 8px; }
+  .pin-btn {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+    color: var(--text); font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
+    padding: 18px 0; cursor: pointer; transition: all .15s; user-select: none;
+  }
+  .pin-btn:active { background: var(--orange); color: #000; transform: scale(.95); }
+  .pin-btn.pin-del { font-size: 18px; color: var(--muted); }
+  .pin-btn.pin-empty { background: transparent; border-color: transparent; cursor: default; }
+  .pin-btn.pin-empty:active { background: transparent; transform: none; }
+
+  /* ─── LAYOUT GENERAL ─────────────────────────────────────────────────── */
+  .container { max-width: 980px; margin: 0 auto; padding: 0 32px; }
+  #app, #screen-selector, #screen-lista, #screen-editor { display: none; }
+
+  /* ─── PANTALLA SELECTOR (crear nuevo / ver existentes) ─────────────────── */
+  .selector-hero { padding: 64px 32px 40px; text-align: center; }
+  .selector-eyebrow {
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--orange); margin-bottom: 16px;
+  }
+  .selector-title { font-family: 'Syne', sans-serif; font-size: clamp(26px,4.5vw,36px); font-weight: 800; margin-bottom: 12px; }
+  .selector-sub { font-size: 14px; color: var(--muted); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+
+  .selector-cards {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    max-width: 760px; margin: 40px auto 0; padding: 0 32px;
+  }
+  .selector-card {
+    background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px;
+    padding: 36px 28px; cursor: pointer; transition: all .2s; text-align: left;
+  }
+  .selector-card:hover { border-color: var(--orange); transform: translateY(-2px); }
+  .selector-card-icon { font-size: 28px; margin-bottom: 16px; }
+  .selector-card-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800; margin-bottom: 8px; }
+  .selector-card-desc { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+  @media (max-width: 640px) {
+    .selector-cards { grid-template-columns: 1fr; }
+  }
+
+  /* ─── PANTALLA LISTA DE PLANES EXISTENTES ───────────────────────────────── */
+  .lista-header { padding: 40px 32px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .lista-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
+  .lista-items { padding: 0 32px; display: flex; flex-direction: column; gap: 12px; }
+  .plan-item {
+    background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 20px 24px; cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .plan-item:hover { border-color: var(--orange); }
+  .plan-item-left { display: flex; align-items: center; gap: 16px; }
+  .plan-item-cliente { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; }
+  .plan-item-periodo { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .plan-item-stats { display: flex; gap: 18px; align-items: center; }
+  .plan-stat { text-align: center; }
+  .plan-stat-num { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800; }
+  .plan-stat-label { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .plan-item-badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    padding: 5px 11px; border-radius: 100px;
+  }
+  .plan-item-badge.en_revision { background: var(--surface3); color: var(--muted); }
+  .plan-item-badge.aprobado_final { background: rgba(184,224,74,.15); color: var(--lime); }
+
+  .empty-state { padding: 60px 32px; text-align: center; color: var(--muted); font-size: 13.5px; }
+
+  /* ─── FORMULARIO NUEVO PLAN ──────────────────────────────────────────────── */
+  .form-nuevo {
+    max-width: 480px; margin: 0 auto; padding: 40px 32px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .form-field label {
+    font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em;
+    display: block; margin-bottom: 8px; font-weight: 600;
+  }
+  .form-field input, .form-field select, .form-field textarea {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); padding: 13px 16px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+  }
+  .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: none; border-color: var(--orange); }
+  .form-field select { cursor: pointer; }
+
+  .btn-primary {
+    background: var(--orange); color: #14130f; border: none; padding: 14px 24px;
+    border-radius: 10px; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .03em; cursor: pointer; transition: all .15s;
+  }
+  .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn-primary:disabled { background: var(--surface3); color: var(--muted); cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    background: transparent; color: var(--text); border: 1.5px solid var(--border); padding: 13px 22px;
+    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .15s;
+  }
+  .btn-secondary:hover { border-color: var(--text); }
+
+  /* ─── TOAST ───────────────────────────────────────────────────────────── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 13px 20px; display: flex; align-items: center; gap: 10px;
+    opacity: 0; pointer-events: none; transition: all .25s; z-index: 1000; max-width: 90vw;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
+  .toast-body { font-size: 13px; }
+
+  /* ─── ESCENA INDIVIDUAL EN EL FORMULARIO ────────────────────────────────── */
+  .escena-row { display: flex; gap: 10px; align-items: flex-start; }
+  .escena-num {
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800; color: var(--orange);
+    background: var(--surface3); width: 30px; height: 38px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .escena-textarea {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px;
+    resize: vertical; min-height: 38px;
+  }
+  .escena-textarea:focus { outline: none; border-color: var(--orange); }
+  .escena-del {
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    width: 38px; height: 38px; border-radius: 8px; cursor: pointer; flex-shrink: 0; font-size: 14px;
+  }
+  .escena-del:hover { border-color: var(--red-soft); color: var(--red-soft); }
+
+  /* ─── TARJETA DE PIEZA EN EL EDITOR (lista lateral, distinta de la vista cliente) ── */
+  .editor-piece-card {
+    background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .editor-piece-card.estado-aprobada { border-color: var(--lime); }
+  .editor-piece-card.estado-cambios_solicitados { border-color: var(--red-soft); }
+  .editor-piece-left { display: flex; align-items: center; gap: 14px; }
+  .editor-piece-num {
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800; background: var(--surface3);
+    width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .editor-piece-cat { font-size: 10.5px; color: var(--orange); text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+  .editor-piece-tapa { font-family: 'Syne', sans-serif; font-size: 14.5px; font-weight: 700; margin-top: 2px; }
+  .editor-piece-actions { display: flex; align-items: center; gap: 10px; }
+  .editor-piece-badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    padding: 5px 11px; border-radius: 100px;
+  }
+  .editor-piece-badge.pendiente { background: var(--surface3); color: var(--muted); }
+  .editor-piece-badge.aprobada { background: rgba(184,224,74,.15); color: var(--lime); }
+  .editor-piece-badge.cambios_solicitados { background: var(--red-soft-bg); color: var(--red-soft); }
+  .editor-piece-comentario {
+    width: 100%; margin-top: 12px; padding: 12px 14px; background: var(--red-soft-bg);
+    border: 1px solid rgba(224,133,119,.3); border-radius: 8px; font-size: 12.5px; line-height: 1.5;
+  }
+  .editor-piece-comentario-label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--red-soft); font-weight: 700; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     AUTH — PIN de Victoria (mismo PIN que ya usa en costos: 1101)
+     ════════════════════════════════════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">Contentive Studio</div>
+    <div class="auth-title">Plan de Estrategia</div>
+    <div class="auth-sub">Ingresá tu PIN para cargar y editar contenido.</div>
+    <div class="pin-display">
+      <div class="pin-dot" id="pin0"></div>
+      <div class="pin-dot" id="pin1"></div>
+      <div class="pin-dot" id="pin2"></div>
+      <div class="pin-dot" id="pin3"></div>
+    </div>
+    <div class="pin-error" id="pinError"></div>
+    <div class="pin-pad">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn pin-empty"></button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn pin-del" onclick="pinDelete()">⌫</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     APP PRINCIPAL
+     ════════════════════════════════════════════════════════════════════ -->
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-dot"></div>
+      <div>
+        <div class="header-title">Contentive Studio — Plan de Estrategia</div>
+        <div class="header-subtitle">Victoria · Editor de contenido</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="save-status">
+        <div class="save-dot" id="saveDot"></div>
+        <span id="saveText">Sin cambios</span>
+      </div>
+      <button class="btn-ghost" id="btnVolverSelector" onclick="irASelector()" style="display:none;">← Cambiar cliente/mes</button>
+      <button class="logout-btn" onclick="handleLogout()">Salir</button>
+    </div>
+  </div>
+
+  <!-- ─── PANTALLA 1: SELECTOR (crear nuevo / ver existentes) ─────────── -->
+  <div id="screen-selector">
+    <div class="selector-hero">
+      <div class="selector-eyebrow">Plan de Estrategia</div>
+      <div class="selector-title">¿Qué querés hacer?</div>
+      <div class="selector-sub">Cargá el contenido de un mes nuevo, o entrá a uno que ya empezaste para seguir editando o revisar el estado de aprobación del cliente.</div>
+    </div>
+    <div class="selector-cards">
+      <div class="selector-card" onclick="mostrarFormularioNuevo()">
+        <div class="selector-card-icon">＋</div>
+        <div class="selector-card-title">Crear plan nuevo</div>
+        <div class="selector-card-desc">Empezá a cargar el contenido de un cliente y mes que todavía no existe.</div>
+      </div>
+      <div class="selector-card" onclick="mostrarListaExistentes()">
+        <div class="selector-card-icon">📋</div>
+        <div class="selector-card-title">Ver planes existentes</div>
+        <div class="selector-card-desc">Entrá a un plan que ya cargaste para seguir editando o ver qué aprobó el cliente.</div>
+      </div>
+    </div>
+
+    <!-- Formulario de creación (oculto por defecto, se muestra al elegir "Crear plan nuevo") -->
+    <div class="form-nuevo" id="formNuevo" style="display:none;">
+      <div class="form-field">
+        <label>Cliente</label>
+        <select id="nuevoCliente">
+          <option value="">Seleccioná un cliente...</option>
+          <option value="Seklou">Seklou</option>
+          <option value="TecnoTips">TecnoTips</option>
+          <option value="Panadería Venezolana Donna">Panadería Venezolana Donna</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Mes</label>
+        <select id="nuevoMes">
+          <option value="">Seleccioná un mes...</option>
+          <option value="Enero">Enero</option><option value="Febrero">Febrero</option>
+          <option value="Marzo">Marzo</option><option value="Abril">Abril</option>
+          <option value="Mayo">Mayo</option><option value="Junio">Junio</option>
+          <option value="Julio">Julio</option><option value="Agosto">Agosto</option>
+          <option value="Septiembre">Septiembre</option><option value="Octubre">Octubre</option>
+          <option value="Noviembre">Noviembre</option><option value="Diciembre">Diciembre</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Año</label>
+        <input type="number" id="nuevoAnio" value="2026" min="2024" max="2030">
+      </div>
+      <div style="display:flex; gap:12px; margin-top:8px;">
+        <button class="btn-secondary" onclick="ocultarFormularioNuevo()" style="flex:1;">Cancelar</button>
+        <button class="btn-primary" onclick="crearPlanNuevo()" style="flex:1;">Crear y empezar a cargar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── PANTALLA 2: LISTA DE PLANES EXISTENTES ────────────────────────── -->
+  <div id="screen-lista">
+    <div class="lista-header">
+      <div class="lista-title">Planes existentes</div>
+      <button class="btn-ghost" onclick="irASelector()">← Volver</button>
+    </div>
+    <div class="lista-items" id="listaItemsContainer">
+      <!-- Se llena dinámicamente -->
+    </div>
+  </div>
+
+  <!-- ─── PANTALLA 3: EDITOR DE PIEZAS ───────────────────────────────────── -->
+  <div id="screen-editor">
+    <div class="lista-header">
+      <div>
+        <div class="lista-title" id="editorTituloCliente">—</div>
+        <div class="plan-item-periodo" id="editorSubtituloPeriodo">—</div>
+      </div>
+      <button class="btn-primary" onclick="mostrarFormularioPieza()">＋ Agregar pieza</button>
+    </div>
+
+    <div class="container" style="padding-bottom: 40px;">
+      <div id="editorPiezasContainer" style="display:flex; flex-direction:column; gap:14px;"></div>
+    </div>
+
+    <!-- Formulario de nueva/edición de pieza (modal simple, no superpuesto, se inserta arriba de la lista) -->
+    <div class="container" id="formPiezaWrapper" style="display:none; padding-bottom: 40px;">
+      <div style="background:var(--surface); border:1.5px solid var(--orange); border-radius:16px; padding:32px;">
+        <div style="font-family:'Syne',sans-serif; font-size:17px; font-weight:800; margin-bottom:24px;" id="formPiezaTitulo">Nueva pieza</div>
+
+        <div class="form-field" style="margin-bottom:18px;">
+          <label>Categoría</label>
+          <select id="piezaCategoria" onchange="onCategoriaChange()">
+            <option value="Reels">Reels</option>
+            <option value="TikTok">TikTok</option>
+            <option value="Historias">Historias</option>
+          </select>
+        </div>
+
+        <div class="form-field" style="margin-bottom:18px;">
+          <label>Idea / concepto</label>
+          <input type="text" id="piezaIdea" placeholder="Ej: Informativo, Promocional, Dinámico...">
+        </div>
+
+        <div class="form-field" style="margin-bottom:18px;">
+          <label>Tapa (título corto que ve el cliente)</label>
+          <input type="text" id="piezaTapa" placeholder="Ej: Un dato que no conocías">
+        </div>
+
+        <!-- Bloque GUION (Reels/TikTok) -->
+        <div id="bloqueGuion" style="margin-bottom:18px;">
+          <label style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:10px; font-weight:600;">Guión por escenas</label>
+          <div id="escenasContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
+          <button class="btn-secondary" onclick="agregarEscena()" style="margin-top:10px; font-size:12px; padding:9px 16px;">＋ Agregar escena</button>
+        </div>
+
+        <!-- Bloque PRODUCCIÓN (Reels/TikTok) -->
+        <div id="bloqueProduccion" style="margin-bottom:18px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
+          <div class="form-field">
+            <label>Personas</label>
+            <input type="text" id="prodPersonas" placeholder="Ej: 1">
+          </div>
+          <div class="form-field">
+            <label>Lugar</label>
+            <input type="text" id="prodLugar" placeholder="Ej: Casa">
+          </div>
+          <div class="form-field">
+            <label>Utilería</label>
+            <input type="text" id="prodUtileria" placeholder="Ej: Seklou">
+          </div>
+        </div>
+
+        <!-- Bloque FORMATO + TEXTO SIMPLE (Historias) -->
+        <div id="bloqueHistoria" style="margin-bottom:18px; display:none;">
+          <div class="form-field" style="margin-bottom:14px;">
+            <label>Tipo de historia</label>
+            <select id="historiaTipo">
+              <option value="Diseño / Grabada">Diseño / Grabada</option>
+              <option value="Diseño / Estática">Diseño / Estática</option>
+              <option value="Diseño / Carrusel">Diseño / Carrusel</option>
+              <option value="Diseño / Estático">Diseño / Estático</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Texto de la historia</label>
+            <textarea id="historiaTexto" rows="3" placeholder="El texto que va en la imagen/video de la historia..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-field" style="margin-bottom:18px;">
+          <label>Link de referencia / inspiración (opcional)</label>
+          <input type="text" id="piezaLinkReferencia" placeholder="Link de un reel/video que viste como referencia">
+        </div>
+
+        <div class="form-field" style="margin-bottom:18px;">
+          <label>Link de destino (opcional — botón que ve el cliente final)</label>
+          <input type="text" id="piezaLink" placeholder="Ej: https://seklou.com/">
+        </div>
+
+        <div class="form-field" style="margin-bottom:18px;">
+          <label>Descripción de la publicación (caption)</label>
+          <textarea id="piezaCopy" rows="3" placeholder="El texto que acompaña la publicación..."></textarea>
+        </div>
+
+        <div class="form-field" style="margin-bottom:8px;">
+          <label>Hashtags (máximo 5)</label>
+          <input type="text" id="piezaHashtags" placeholder="#Seklou #Humedad #Hogar" oninput="onHashtagsInput()">
+        </div>
+        <div id="hashtagsAviso" style="font-size:11.5px; color:var(--red-soft); margin-bottom:18px; display:none;"></div>
+
+        <div style="display:flex; gap:12px; margin-top:8px;">
+          <button class="btn-secondary" onclick="ocultarFormularioPieza()" style="flex:1;">Cancelar</button>
+          <button class="btn-primary" id="btnGuardarPieza" onclick="guardarPieza()" style="flex:1;">Guardar pieza</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="toast-dot" id="toastDot"></div>
+  <div class="toast-body" id="toastMsg"></div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEUSF66Lh1KBsaYU13_mwtXNGDR5Du6eWA1K0dHrdsJoea_oRCM8mbJ2GMAtF_12X1/exec';
+const CORRECT_PIN = '1101';
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let pinBuffer = '';
+let driveLoadedOk = false;
+let saveTimer = null;
+let planActual = null;       // { cliente, mes } normalizado para la URL del backend
+let planData = null;         // el JSON completo del plan actual (cuando se entra a editar uno)
+let piezaEditandoId = null;  // si no es null, el formulario está EDITANDO esa pieza en vez de crear una nueva
+let escenaCounter = 0;
+
+// ─── PIN AUTH ─────────────────────────────────────────────────────────────────
+function pinPress(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === 4) setTimeout(checkPin, 120);
+}
+
+function pinDelete() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updatePinDots();
+  document.getElementById('pinError').textContent = '';
+  document.querySelectorAll('.pin-dot').forEach(d => d.classList.remove('error'));
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('pin' + i);
+    dot.classList.toggle('filled', i < pinBuffer.length);
+    dot.classList.remove('error');
+  }
+}
+
+function checkPin() {
+  if (pinBuffer === CORRECT_PIN) {
+    showApp();
+  } else {
+    document.querySelectorAll('.pin-dot').forEach(d => { d.classList.remove('filled'); d.classList.add('error'); });
+    document.getElementById('pinError').textContent = 'PIN incorrecto. Intentá de nuevo.';
+    setTimeout(() => {
+      pinBuffer = '';
+      updatePinDots();
+      document.querySelectorAll('.pin-dot').forEach(d => d.classList.remove('error'));
+      document.getElementById('pinError').textContent = '';
+    }, 900);
+  }
+}
+
+function handleLogout() {
+  pinBuffer = '';
+  planActual = null;
+  planData = null;
+  updatePinDots();
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  irASelector();
+}
+
+// ─── NAVEGACIÓN ENTRE PANTALLAS ────────────────────────────────────────────────
+function ocultarTodasLasPantallas() {
+  document.getElementById('screen-selector').style.display = 'none';
+  document.getElementById('screen-lista').style.display = 'none';
+  document.getElementById('screen-editor').style.display = 'none';
+  document.getElementById('btnVolverSelector').style.display = 'none';
+}
+
+function irASelector() {
+  ocultarTodasLasPantallas();
+  document.getElementById('screen-selector').style.display = 'block';
+  ocultarFormularioNuevo();
+  planActual = null;
+  planData = null;
+}
+
+async function mostrarListaExistentes() {
+  ocultarTodasLasPantallas();
+  document.getElementById('screen-lista').style.display = 'block';
+  document.getElementById('btnVolverSelector').style.display = 'inline-block';
+  await cargarListaPlanes();
+}
+
+function mostrarFormularioNuevo() {
+  document.getElementById('formNuevo').style.display = 'flex';
+}
+function ocultarFormularioNuevo() {
+  document.getElementById('formNuevo').style.display = 'none';
+}
+
+// ─── CARGA DE LISTADO DE PLANES (panel histórico básico) ───────────────────────
+async function cargarListaPlanes() {
+  const container = document.getElementById('listaItemsContainer');
+  container.innerHTML = '<div class="empty-state">Cargando planes...</div>';
+  try {
+    const res = await fetch(`${SCRIPT_URL}?listar=1&pin=${CORRECT_PIN}`);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Error al listar');
+
+    const planes = json.planes || [];
+    if (planes.length === 0) {
+      container.innerHTML = '<div class="empty-state">Todavía no hay planes cargados. Creá el primero desde "Crear plan nuevo".</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    planes.forEach(p => {
+      if (p.error) return; // se omiten archivos corruptos del listado visual
+      const item = document.createElement('div');
+      item.className = 'plan-item';
+      item.onclick = () => abrirPlanExistente(p.cliente, p.mes, p.anio);
+      item.innerHTML = `
+        <div class="plan-item-left">
+          <div>
+            <div class="plan-item-cliente">${escapeHtml(p.cliente)}</div>
+            <div class="plan-item-periodo">${escapeHtml(p.mes)} ${escapeHtml(String(p.anio))}</div>
+          </div>
+        </div>
+        <div class="plan-item-stats">
+          <div class="plan-stat"><div class="plan-stat-num">${p.total_piezas}</div><div class="plan-stat-label">Piezas</div></div>
+          <div class="plan-stat"><div class="plan-stat-num">${p.aprobadas}</div><div class="plan-stat-label">Aprobadas</div></div>
+          <div class="plan-stat"><div class="plan-stat-num">${p.con_cambios}</div><div class="plan-stat-label">Con cambios</div></div>
+          <span class="plan-item-badge ${p.estado_general}">${p.estado_general === 'aprobado_final' ? 'Aprobado' : 'En revisión'}</span>
+        </div>
+      `;
+      container.appendChild(item);
+    });
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state">⚠️ No se pudo cargar el listado: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+// ─── CREAR PLAN NUEVO ───────────────────────────────────────────────────────────
+function crearPlanNuevo() {
+  const cliente = document.getElementById('nuevoCliente').value;
+  const mes = document.getElementById('nuevoMes').value;
+  const anio = parseInt(document.getElementById('nuevoAnio').value, 10);
+
+  if (!cliente || !mes || !anio) {
+    showToast('⚠️ Completá cliente, mes y año', 'warn');
+    return;
+  }
+
+  planData = {
+    cliente: cliente,
+    mes: mes,
+    anio: anio,
+    fecha_carga: new Date().toISOString(),
+    estado_general: 'en_revision',
+    piezas: []
+  };
+
+  abrirEditorConPlanActual(cliente, mes);
+}
+
+async function abrirPlanExistente(cliente, mes, anio) {
+  ocultarTodasLasPantallas();
+  document.getElementById('screen-editor').style.display = 'block';
+  document.getElementById('btnVolverSelector').style.display = 'inline-block';
+  setSaveStatus('loading');
+
+  planActual = { cliente: normalizarParaUrl(cliente), mes: normalizarParaUrl(mes) + '_' + anio };
+
+  try {
+    const res = await fetch(`${SCRIPT_URL}?cliente=${planActual.cliente}&mes=${planActual.mes}`);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Error al cargar');
+    planData = json.data;
+    driveLoadedOk = true;
+    setSaveStatus('saved');
+    renderEditorPiezas();
+  } catch (e) {
+    driveLoadedOk = false;
+    setSaveStatus('error');
+    showToast('⚠️ No se pudo cargar este plan: ' + e.message, 'error');
+  }
+}
+
+function abrirEditorConPlanActual(cliente, mes) {
+  planActual = { cliente: normalizarParaUrl(cliente), mes: normalizarParaUrl(mes) + '_' + planData.anio };
+  ocultarTodasLasPantallas();
+  document.getElementById('screen-editor').style.display = 'block';
+  document.getElementById('btnVolverSelector').style.display = 'inline-block';
+  driveLoadedOk = true; // recién creado en memoria, se confirma al primer guardado real
+  setSaveStatus('saved');
+  renderEditorPiezas();
+  guardarEnDrive(); // primer guardado para que el archivo exista ya en Drive
+}
+
+function normalizarParaUrl(s) {
+  return s.toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[áàä]/g, 'a').replace(/[éèë]/g, 'e').replace(/[íìï]/g, 'i')
+    .replace(/[óòö]/g, 'o').replace(/[úùü]/g, 'u');
+}
+
+// ─── RENDER DE PIEZAS EN EL EDITOR ──────────────────────────────────────────────
+function renderEditorPiezas() {
+  document.getElementById('editorTituloCliente').textContent = planData.cliente;
+  document.getElementById('editorSubtituloPeriodo').textContent = `${planData.mes} ${planData.anio}`;
+
+  const container = document.getElementById('editorPiezasContainer');
+  container.innerHTML = '';
+
+  if (!planData.piezas || planData.piezas.length === 0) {
+    container.innerHTML = '<div class="empty-state">Todavía no cargaste ninguna pieza. Usá el botón "＋ Agregar pieza" para empezar.</div>';
+    return;
+  }
+
+  planData.piezas.forEach(pieza => {
+    const card = document.createElement('div');
+    card.className = `editor-piece-card estado-${pieza.estado}`;
+
+    const badgeText = pieza.estado === 'aprobada' ? 'Aprobada'
+                     : pieza.estado === 'cambios_solicitados' ? 'Cambios solicitados'
+                     : 'Pendiente';
+
+    card.innerHTML = `
+      <div class="editor-piece-left">
+        <div class="editor-piece-num">${String(pieza.numero).padStart(2,'0')}</div>
+        <div>
+          <div class="editor-piece-cat">${escapeHtml(pieza.categoria)} · ${escapeHtml(pieza.idea || '')}</div>
+          <div class="editor-piece-tapa">${escapeHtml(pieza.tapa)}</div>
+        </div>
+      </div>
+      <div class="editor-piece-actions">
+        <span class="editor-piece-badge ${pieza.estado}">${badgeText}</span>
+        <button class="btn-ghost" onclick="editarPieza('${pieza.id}')">Editar</button>
+        <button class="btn-ghost" onclick="eliminarPieza('${pieza.id}')">Eliminar</button>
+      </div>
+      ${pieza.estado === 'cambios_solicitados' && pieza.comentario_cliente ? `
+        <div class="editor-piece-comentario">
+          <div class="editor-piece-comentario-label">Cambio solicitado por el cliente</div>
+          ${escapeHtml(pieza.comentario_cliente)}
+        </div>
+      ` : ''}
+    `;
+    container.appendChild(card);
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+// ─── FORMULARIO DE PIEZA (crear / editar) ──────────────────────────────────────
+function mostrarFormularioPieza() {
+  piezaEditandoId = null;
+  document.getElementById('formPiezaTitulo').textContent = 'Nueva pieza';
+  limpiarFormularioPieza();
+  document.getElementById('formPiezaWrapper').style.display = 'block';
+  document.getElementById('formPiezaWrapper').scrollIntoView({ behavior: 'smooth' });
+}
+
+function ocultarFormularioPieza() {
+  document.getElementById('formPiezaWrapper').style.display = 'none';
+  piezaEditandoId = null;
+}
+
+function limpiarFormularioPieza() {
+  document.getElementById('piezaCategoria').value = 'Reels';
+  document.getElementById('piezaIdea').value = '';
+  document.getElementById('piezaTapa').value = '';
+  document.getElementById('prodPersonas').value = '';
+  document.getElementById('prodLugar').value = '';
+  document.getElementById('prodUtileria').value = '';
+  document.getElementById('historiaTipo').value = 'Diseño / Grabada';
+  document.getElementById('historiaTexto').value = '';
+  document.getElementById('piezaLinkReferencia').value = '';
+  document.getElementById('piezaLink').value = '';
+  document.getElementById('piezaCopy').value = '';
+  document.getElementById('piezaHashtags').value = '';
+  document.getElementById('hashtagsAviso').style.display = 'none';
+  document.getElementById('escenasContainer').innerHTML = '';
+  escenaCounter = 0;
+  agregarEscena(); // arranca con una escena vacía lista para completar
+  onCategoriaChange();
+}
+
+function onCategoriaChange() {
+  const cat = document.getElementById('piezaCategoria').value;
+  const esHistoria = cat === 'Historias';
+  document.getElementById('bloqueGuion').style.display = esHistoria ? 'none' : 'block';
+  document.getElementById('bloqueProduccion').style.display = esHistoria ? 'none' : 'grid';
+  document.getElementById('bloqueHistoria').style.display = esHistoria ? 'block' : 'none';
+}
+
+// ─── ESCENAS DINÁMICAS (Reels/TikTok) ───────────────────────────────────────────
+function agregarEscena(texto) {
+  escenaCounter++;
+  const container = document.getElementById('escenasContainer');
+  const row = document.createElement('div');
+  row.className = 'escena-row';
+  row.dataset.escenaId = escenaCounter;
+  row.innerHTML = `
+    <div class="escena-num">#${container.children.length + 1}</div>
+    <textarea class="escena-textarea" placeholder="Texto de esta escena...">${texto ? escapeHtml(texto) : ''}</textarea>
+    <button class="escena-del" onclick="eliminarEscena(this)">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function eliminarEscena(btn) {
+  const container = document.getElementById('escenasContainer');
+  if (container.children.length <= 1) {
+    showToast('⚠️ Tiene que quedar al menos una escena', 'warn');
+    return;
+  }
+  btn.closest('.escena-row').remove();
+  // Renumerar visualmente
+  Array.from(container.children).forEach((row, i) => {
+    row.querySelector('.escena-num').textContent = '#' + (i + 1);
+  });
+}
+
+// ─── HASHTAGS: validación de origen (máximo 5) ─────────────────────────────────
+function onHashtagsInput() {
+  const texto = document.getElementById('piezaHashtags').value;
+  const aviso = document.getElementById('hashtagsAviso');
+  const resultado = validarHashtags(texto, 5);
+  if (!resultado.valido) {
+    aviso.textContent = resultado.mensaje;
+    aviso.style.display = 'block';
+  } else {
+    aviso.style.display = 'none';
+  }
+}
+
+function validarHashtags(texto, maxCantidad) {
+  if (!texto || !texto.trim()) return { valido: true, cantidad: 0, mensaje: null };
+  const tags = texto.trim().split(/\s+/).filter(t => t.startsWith('#'));
+  if (tags.length > maxCantidad) {
+    return {
+      valido: false,
+      cantidad: tags.length,
+      mensaje: `Cargaste ${tags.length} hashtags. El máximo permitido es ${maxCantidad} — sacá ${tags.length - maxCantidad} antes de guardar.`
+    };
+  }
+  return { valido: true, cantidad: tags.length, mensaje: null };
+}
+
+// ─── EDITAR / ELIMINAR PIEZA EXISTENTE ─────────────────────────────────────────
+function editarPieza(id) {
+  const pieza = planData.piezas.find(p => p.id === id);
+  if (!pieza) return;
+  piezaEditandoId = id;
+  document.getElementById('formPiezaTitulo').textContent = 'Editar pieza';
+
+  document.getElementById('piezaCategoria').value = pieza.categoria;
+  document.getElementById('piezaIdea').value = pieza.idea || '';
+  document.getElementById('piezaTapa').value = pieza.tapa || '';
+  document.getElementById('piezaLinkReferencia').value = pieza.link_referencia || '';
+  document.getElementById('piezaLink').value = pieza.link || '';
+  document.getElementById('piezaCopy').value = pieza.copy || '';
+  document.getElementById('piezaHashtags').value = pieza.hashtags || '';
+  document.getElementById('hashtagsAviso').style.display = 'none';
+
+  document.getElementById('escenasContainer').innerHTML = '';
+  escenaCounter = 0;
+  if (pieza.categoria === 'Historias') {
+    document.getElementById('historiaTipo').value = (pieza.produccion && pieza.produccion.formato) || 'Diseño / Grabada';
+    document.getElementById('historiaTexto').value = (pieza.guion && pieza.guion[0] && pieza.guion[0].texto) || '';
+    agregarEscena(); // mantiene el bloque de guion con al menos una fila por consistencia interna, aunque no se muestre
+  } else {
+    document.getElementById('prodPersonas').value = (pieza.produccion && pieza.produccion.personas) || '';
+    document.getElementById('prodLugar').value = (pieza.produccion && pieza.produccion.lugar) || '';
+    document.getElementById('prodUtileria').value = (pieza.produccion && pieza.produccion.utileria) || '';
+    if (pieza.guion && pieza.guion.length) {
+      pieza.guion.forEach(g => agregarEscena(g.texto));
+    } else {
+      agregarEscena();
+    }
+  }
+
+  onCategoriaChange();
+  document.getElementById('formPiezaWrapper').style.display = 'block';
+  document.getElementById('formPiezaWrapper').scrollIntoView({ behavior: 'smooth' });
+}
+
+function eliminarPieza(id) {
+  if (!confirm('¿Eliminar esta pieza? Esta acción no se puede deshacer.')) return;
+  planData.piezas = planData.piezas.filter(p => p.id !== id);
+  renumerarPiezas();
+  renderEditorPiezas();
+  guardarEnDrive();
+  showToast('Pieza eliminada');
+}
+
+function renumerarPiezas() {
+  const categorias = {};
+  planData.piezas.forEach(p => {
+    categorias[p.categoria] = (categorias[p.categoria] || 0) + 1;
+    p.numero = categorias[p.categoria];
+  });
+}
+
+// ─── GUARDAR PIEZA (nueva o editada) ────────────────────────────────────────────
+function guardarPieza() {
+  const categoria = document.getElementById('piezaCategoria').value;
+  const idea = document.getElementById('piezaIdea').value.trim();
+  const tapa = document.getElementById('piezaTapa').value.trim();
+  const linkReferencia = document.getElementById('piezaLinkReferencia').value.trim();
+  const link = document.getElementById('piezaLink').value.trim();
+  const copy = document.getElementById('piezaCopy').value.trim();
+  const hashtags = document.getElementById('piezaHashtags').value.trim();
+
+  if (!tapa) {
+    showToast('⚠️ La tapa es obligatoria', 'warn');
+    return;
+  }
+
+  const validacionHashtags = validarHashtags(hashtags, 5);
+  if (!validacionHashtags.valido) {
+    showToast('⚠️ ' + validacionHashtags.mensaje, 'error');
+    return;
+  }
+
+  let guion = [];
+  let produccion = {};
+
+  if (categoria === 'Historias') {
+    const tipo = document.getElementById('historiaTipo').value;
+    const texto = document.getElementById('historiaTexto').value.trim();
+    guion = texto ? [{ escena: 1, texto: texto }] : [];
+    produccion = { formato: tipo };
+  } else {
+    const escenaRows = document.querySelectorAll('#escenasContainer .escena-row');
+    guion = Array.from(escenaRows).map((row, i) => ({
+      escena: i + 1,
+      texto: row.querySelector('.escena-textarea').value.trim()
+    })).filter(e => e.texto);
+    produccion = {
+      personas: document.getElementById('prodPersonas').value.trim(),
+      lugar: document.getElementById('prodLugar').value.trim(),
+      utileria: document.getElementById('prodUtileria').value.trim()
+    };
+  }
+
+  if (piezaEditandoId) {
+    // Edición de pieza existente: si tenía cambios solicitados, vuelve a quedar pendiente de revisión del cliente
+    const pieza = planData.piezas.find(p => p.id === piezaEditandoId);
+    if (pieza) {
+      pieza.categoria = categoria;
+      pieza.idea = idea;
+      pieza.tapa = tapa;
+      pieza.guion = guion;
+      pieza.produccion = produccion;
+      pieza.link_referencia = linkReferencia || null;
+      pieza.link = link || null;
+      pieza.copy = copy;
+      pieza.hashtags = hashtags;
+      if (pieza.estado === 'cambios_solicitados') {
+        pieza.estado = 'pendiente';
+        pieza.comentario_cliente = null;
+      }
+    }
+  } else {
+    // Pieza nueva
+    const piezasMismaCategoria = planData.piezas.filter(p => p.categoria === categoria);
+    const nuevaPieza = {
+      id: `${categoria.toLowerCase()}_${Date.now()}`,
+      categoria: categoria,
+      numero: piezasMismaCategoria.length + 1,
+      idea: idea,
+      link: link || null,
+      link_referencia: linkReferencia || null,
+      guion: guion,
+      produccion: produccion,
+      tapa: tapa,
+      copy: copy,
+      hashtags: hashtags,
+      estado: 'pendiente',
+      comentario_cliente: null,
+      historial_cambios: []
+    };
+    planData.piezas.push(nuevaPieza);
+  }
+
+  ocultarFormularioPieza();
+  renderEditorPiezas();
+  guardarEnDrive();
+  showToast(piezaEditandoId ? 'Pieza actualizada ✓' : 'Pieza agregada ✓');
+}
+
+// ─── GUARDADO EN DRIVE ───────────────────────────────────────────────────────────
+function guardarEnDrive() {
+  if (!driveLoadedOk) {
+    showToast('⚠️ No se pudo guardar — recargá la página', 'error');
+    return;
+  }
+  clearTimeout(saveTimer);
+  setSaveStatus('saving');
+  saveTimer = setTimeout(async () => {
+    try {
+      const payload = {
+        pin: CORRECT_PIN,
+        cliente: planActual.cliente,
+        mes: planActual.mes,
+        data: planData
+      };
+      const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error);
+      setSaveStatus('saved');
+    } catch (e) {
+      setSaveStatus('error');
+      showToast('⚠️ Error al guardar: ' + e.message, 'error');
+    }
+  }, 800);
+}
+
+function setSaveStatus(state) {
+  const dot = document.getElementById('saveDot');
+  const txt = document.getElementById('saveText');
+  dot.className = 'save-dot';
+  if (state === 'saved')        { dot.classList.add('saved');  txt.textContent = 'Guardado'; }
+  else if (state === 'saving')  { dot.classList.add('saving'); txt.textContent = 'Guardando...'; }
+  else if (state === 'error')   { dot.classList.add('error');  txt.textContent = '⚠️ Error al guardar'; }
+  else if (state === 'loading') { dot.classList.add('saving'); txt.textContent = 'Cargando...'; }
+  else { txt.textContent = 'Sin cambios'; }
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  const dot = document.getElementById('toastDot');
+  document.getElementById('toastMsg').textContent = msg;
+  dot.style.background = type === 'error' ? 'var(--red)' : type === 'warn' ? 'var(--orange)' : 'var(--lime)';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+</script>
+</body>
+</html>
